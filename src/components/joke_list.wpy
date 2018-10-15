@@ -1,0 +1,56 @@
+<style lang="less">
+  .english_box{
+    padding:30rpx;
+  }
+  .english_list{
+    background:#215161;
+    width:100%;
+    border-radius:20rpx ;
+    color:#fff;
+    padding-bottom:30rpx;
+    image{
+      max-width:100%;
+      height:340rpx;
+      border-radius:20rpx 20rpx 0 0 ;
+      margin-bottom:20rpx;
+    }
+    view{
+      padding:0 20rpx;
+    }
+
+  }
+</style>
+<template>
+  <view class="joke_list">
+    <view class="cells mgt0">
+      <view class="english_box" wx:for="{{list}}" wx:key="index">
+          <view class="english_list">
+            <image src="{{item.imgurl}}" data-src="{{item.imgurl}}" mode="widthFix" @tap="previewImage" />
+            <view class="fs32"><text selectable='true'>{{item.english}}</text></view>
+            <view class="fs26 mgt10"><text selectable='true'>{{item.chinese}}</text></view>
+          </view>
+        </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class joke_list extends wepy.component {
+    props = {
+      list: {}
+    }
+    data = {
+    }
+    methods = {
+      previewImage(e){
+        var current=e.target.dataset.src;
+        var imgArray = [];
+        imgArray.push(current)
+        wx.previewImage({
+          urls: imgArray,
+        })
+      }
+    }
+  }
+</script>

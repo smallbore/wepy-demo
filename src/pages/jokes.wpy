@@ -1,0 +1,166 @@
+<style lang="less">
+  .back_top{
+    position:fixed;
+    right:10rpx;
+    bottom:100rpx;
+    width:60rpx;
+    height:60rpx;
+    border-radius:50%;
+    background:rgba(1,1,1,0.8);
+    color:#fff;
+    font-size:24rpx;
+    text-align:center;
+    line-height:60rpx;
+  }
+  .joke_tpye{
+    position:fixed;
+    right:6rpx;
+    top:30%;
+    width:70rpx;
+    background:rgba(1,1,1,0.8);
+    border-radius:10rpx;
+    font-size:28rpx;
+    color:#ED7317;
+    text-align:center;
+    padding:10rpx 0;
+    .type-list{
+      padding: 15rpx 0;
+    }
+  }
+</style>
+<template>
+  <view>
+    <joketype :list.sync="list"></joketype>
+    <view class="joke_tpye">
+      <view class="type-list" data-type="29" @tap="paragraph">段子</view>
+      <view class="type-list" data-type="10" @tap="jokephoto">图片</view>
+      <view class="type-list" data-type="31" @tap="jokevoice">声音</view>
+      <view class="type-list" data-type="41" @tap="jokevideo">视频</view>
+    </view>
+    <view class="back_top" wx:if="{{floorstatus}}" @tap="goTop">top</view>
+  </view>
+
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '@/api/api'
+  import joketype from '../components/joke_type'
+  import tip from '@/utils/tip'
+
+  export default class Jokes extends wepy.page {
+    config = {
+      navigationBarTitleText: '笑话基',
+      "enablePullDownRefresh": true,
+      onReachBottomDistance: 50
+    }
+    components = {
+      joketype
+    }
+
+    data = {
+      list:[],  //数据列表
+      allPages:'', // 最大页数
+      pagenum:1, // 获取第几页
+      type:29,  // 获取笑话类型
+      floorstatus:false,  // 回到顶部
+    }
+    onPullDownRefresh(){
+      wx.showNavigationBarLoading() //在标题栏中显示加载
+      this.getJokes().then(() => {
+        wx.hideNavigationBarLoading() //完成停止加载
+        wx.stopPullDownRefresh();
+      })
+    }
+    onReachBottom(){
+      this.pagenum = this.pagenum + 1
+      if(this.pagenum > this.allPages){
+          tip.confirm('你划到了我的底线啦').then( (e) => {
+            // console.log(e)
+          }).catch( (e) => {
+            // console.log(e)
+          })
+        }else{
+          this.getJokes(this.pagenum)
+      }
+    }
+
+    methods = {
+      //回到顶部
+      goTop(e) {  // 一键回到顶部
+        this.goTop()
+      },
+      // 段子
+      paragraph(e){
+        this.pagenum = 1;
+        this.type = 29;
+        this.getJokes(this.pagenum).then( () => {
+          this.goTop()
+        })
+      },
+      // 图片
+      jokephoto(e){
+        this.pagenum = 1;
+        this.type = 10;
+        this.getJokes(this.pagenum).then( () => {
+          this.goTop()
+        })
+      },
+      // 声音
+      jokevoice(e){
+        this.pagenum = 1;
+        this.type = 31;
+        this.getJokes(this.pagenum).then( () => {
+          this.goTop()
+        })
+      },
+      // 视频
+      jokevideo(e){
+        this.pagenum = 1;
+        this.type = 41;
+        this.getJokes(this.pagenum).then( () => {
+          this.goTop()
+        })
+      },
+    }
+    onLoad(){
+      this.getJokes()
+
+    }
+    async getJokes(pagenum = 1){
+
+      let res = await api.getJokes({
+        query: {
+          type: this.type,
+          page: pagenum
+        }
+      })
+      let arr = res.data.showapi_res_body.pagebean.contentlist
+      this.allPages = res.data.showapi_res_body.pagebean.allPages
+      if(pagenum !== 1){
+        this.list = this.list.concat(arr)
+      }else{
+        this.list = arr
+      }
+
+      this.$apply()
+    }
+    onPageScroll(e) {
+      // console.log(e)
+      if (e.scrollTop > 100) {
+        this.floorstatus = true
+      } else {
+        this.floorstatus = false
+      }
+      this.$apply()
+    }
+    goTop(e) {  // 一键回到顶部
+      if (wx.pageScrollTo) {
+        wx.pageScrollTo({
+          scrollTop: 0
+        })
+      } else {
+        tip.confirm('当前微信版本过低，无法使用该功能，请升级到最新微信版本后重试。')
+      }
+    }
+  }
+</script>

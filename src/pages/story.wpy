@@ -1,0 +1,239 @@
+<style lang="less">
+  .back_top{
+    position:fixed;
+    right:10rpx;
+    bottom:100rpx;
+    width:60rpx;
+    height:60rpx;
+    border-radius:50%;
+    background:rgba(1,1,1,0.8);
+    color:#fff;
+    font-size:24rpx;
+    text-align:center;
+    line-height:60rpx;
+  }
+  .joke_tpye{
+    position:fixed;
+    right:6rpx;
+    top:30%;
+    width:70rpx;
+    background:rgba(1,1,1,0.8);
+    border-radius:10rpx;
+    font-size:28rpx;
+    color:#ED7317;
+    text-align:center;
+    padding:10rpx 0;
+    .type-list{
+      padding: 15rpx 0;
+    }
+  }
+  .story_select{
+    position: fixed;
+    top:0;
+    left:0;
+    right:0;
+    z-index: 2;
+    background:#000;
+    & + view {
+      margin-top:150rpx;
+    }
+  }
+  .story_title{
+    padding:20rpx 30rpx 0;
+    font-size:36rpx;
+    color:#ff7000;
+  }
+  .scroll-view_H{
+    white-space: nowrap;
+    .story_type{
+      display:inline-block;
+      padding:25rpx 32rpx;
+      font-size:32rpx;
+      color:#ffd000;
+      &.checked{
+        color:#ff8000;
+        font-weight:bold;
+      }
+    }
+  }
+</style>
+<template>
+  <view>
+    <view class="story_select">
+      <view class="story_title">故事类别</view>
+      <scroll-view class="scroll-view_H" scroll-x="true" style="width: 100%">
+        <view wx:for="{{storytype}}"
+              wx:key="{{index}}"
+              data-type="{{item.type}}"
+              @tap="storyType"
+              class="story_type {{item.checked? 'checked' : ''}}">{{item.text}}</view>
+      </scroll-view>
+    </view>
+
+    <joketype :list.sync="list" @storylink.user="todetails"></joketype>
+
+    <view class="back_top" wx:if="{{floorstatus}}" @tap="goTop">top</view>
+  </view>
+
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '@/api/api'
+  import joketype from '../components/joke_type'
+  import tip from '@/utils/tip'
+
+  export default class story extends wepy.page {
+    config = {
+      navigationBarTitleText: '故事会',
+      // "enablePullDownRefresh": true,
+      onReachBottomDistance: 50
+    }
+    components = {
+      joketype
+    }
+
+    data = {
+      list:[],  //数据列表
+      allPages:'', // 最大页数
+      pagenum:1, // 获取第几页
+      type:'dp',  // 获取笑话类型
+      floorstatus:false,  // 回到顶部
+      storytype:[
+        {
+          text: '短篇',
+          type: 'dp',
+          checked: true
+        },
+        {
+          text: '长篇',
+          type: 'cp',
+          checked: false
+        },
+        {
+          text: '校园',
+          type: 'xy',
+          checked: false
+        },
+        {
+          text: '医院',
+          type: 'yy',
+          checked: false
+        },
+        {
+          text: '家里',
+          type: 'jl',
+          checked: false
+        },
+        {
+          text: '民间',
+          type: 'mj',
+          checked: false
+        },
+        {
+          text: '灵异',
+          type: 'ly',
+          checked: false
+        },
+        {
+          text: '原创',
+          type: 'yc',
+          checked: false
+        },
+        {
+          text: '内涵',
+          type: 'neihanguigushi',
+          checked: false
+        },
+      ]
+    }
+    onPullDownRefresh(){
+      wx.showNavigationBarLoading() //在标题栏中显示加载
+      this.getStory().then(() => {
+        wx.hideNavigationBarLoading() //完成停止加载
+        wx.stopPullDownRefresh();
+      })
+    }
+    onReachBottom(){
+      this.pagenum = this.pagenum + 1
+      if(this.pagenum > this.allPages){
+          tip.confirm('你划到了我的底线啦').then( (e) => {
+            // console.log(e)
+          }).catch( (e) => {
+            // console.log(e)
+          })
+        }else{
+          this.getStory(this.pagenum)
+      }
+    }
+
+    methods = {
+      //回到顶部
+      goTop(e) {  // 一键回到顶部
+        this.goTop()
+      },
+      // 段子
+      storyType(e){
+        let Stype = e.target.dataset.type;
+        // 数组对象深拷贝
+        let storyArr = JSON.parse(JSON.stringify(this.storytype))
+        storyArr.forEach( (e) => {
+          if(e.type === Stype){
+            e.checked = true
+          }else{
+            e.checked = false
+          }
+        })
+        this.pagenum = 1;
+        this.storytype = storyArr
+        this.type = Stype;
+        this.getStory(this.pagenum).then( () => {
+          this.goTop()
+        })
+      },
+      todetails(num){
+        // console.log(num)
+        wx.navigateTo({
+          url:`/pages/storydetails?id=${num}`
+        });
+      }
+    }
+    onLoad(){
+      this.getStory()
+    }
+    async getStory(pagenum = 1){
+      let res = await api.getStory({
+        query: {
+          type: this.type,
+          page: pagenum
+        }
+      })
+      let arr = res.data.showapi_res_body.pagebean.contentlist
+      this.allPages = res.data.showapi_res_body.pagebean.allPages
+      if(pagenum != 1){
+        this.list = this.list.concat(arr)
+      }else{
+        this.list = arr
+      }
+
+      this.$apply()
+    }
+    onPageScroll(e) {
+      // console.log(e)
+      if (e.scrollTop > 100) {
+        this.floorstatus = true
+      } else {
+        this.floorstatus = false
+      }
+      this.$apply()
+    }
+    goTop(e) {  // 一键回到顶部
+      if (wx.pageScrollTo) {
+        wx.pageScrollTo({
+          scrollTop: 0
+        })
+      } else {
+        tip.confirm('当前微信版本过低，无法使用该功能，请升级到最新微信版本后重试。')
+      }
+    }
+  }
+</script>

@@ -1,0 +1,110 @@
+<style lang="less">
+  .english_box{
+    padding:30rpx;
+  }
+  .english_list{
+    background:#215161;
+    width:100%;
+    border-radius:20rpx ;
+    color:#fff;
+    padding-bottom:30rpx;
+
+    .fs32{
+      padding:0 50rpx;
+      text-align:justify;
+      text-justify:inter-ideograph;
+    }
+  }
+  .joke_name{
+    padding-bottom:10rpx;
+  }
+  .joke_cell{
+    padding-bottom:0;
+    margin-bottom:-20rpx;
+    .joke_photo{
+      width:100rpx;
+      height:100rpx;
+      border-radius:50%;
+      margin-right:20rpx;
+    }
+  }
+  .cdn_img{
+    padding-top:30rpx;
+  }
+  .myVideo{
+    margin-top:30rpx;
+    background:#000;
+    text-align:center;
+    video{
+      width:80%;
+    }
+  }
+</style>
+<template>
+  <view class="joke_list">
+    <view class="cells mgt0">
+      <view class="english_box" wx:for="{{list}}" wx:key="index" id="{{item.link}}" @tap="storylink">
+
+          <view class="english_list">
+            <view class="cell joke_cell">
+              <view class="cell_hd" wx:if="{{item.profile_image}}">
+                <image src="{{item.profile_image}}" class="joke_photo" />
+              </view>
+              <view class="cell_bd">
+                <!--笑话基-->
+                <view class="joke_name fs30" wx:if="{{item.name}}">{{item.name}}</view>
+                <view class="joke_time" wx:if="{{item.create_time}}">{{item.create_time}}</view>
+                <!--故事会-->
+                <view class="joke_name fs34" wx:if="{{item.title}}">{{item.title}}</view>
+                <view class="joke_time" wx:if="{{item.desc}}">{{item.desc}}</view>
+              </view>
+            </view>
+            <!--笑话基列表-->
+            <view wx:if="{{item.cdn_img}}">
+              <image src="{{item.cdn_img}}" class="cdn_img" data-src="{{item.cdn_img}}" mode="widthFix" @tap="previewImage" />
+            </view>
+            <view wx:if="{{item.voiceuri}}">
+              <audio src="{{item.voiceuri}}"></audio>
+            </view>
+            <view wx:if="{{item.video_uri}}" class="myVideo">
+              <text selectable='true'>该小程序涉及在线观看视频，属个人小程序未开放类目，建议选择企业主体小程序</text>
+              <!--<video src="{{item.video_uri}}" id="myVideo"></video>-->
+            </view>
+            <view class="fs32" wx:if="{{item.text}}">
+              <text selectable='true'>{{item.text}}</text>
+            </view>
+            <!--故事列表-->
+            <view wx:if="{{item.img}}">
+              <image src="{{item.img}}" class="cdn_img" data-src="{{item.img}}" mode="widthFix" @tap="previewImage" />
+            </view>
+          </view>
+        </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class joke_type extends wepy.component {
+    props = {
+      list: {}
+    }
+    data = {
+    }
+    methods = {
+      previewImage(e){
+        var current=e.target.dataset.src;
+        var imgArray = [];
+        imgArray.push(current)
+        wx.previewImage({
+          urls: imgArray,
+        })
+      },
+      storylink(e){
+        let id = e.currentTarget.id
+        this.$emit("storylink",id)
+      }
+
+    }
+  }
+</script>

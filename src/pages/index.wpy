@@ -1,0 +1,82 @@
+<style lang="less">
+
+</style>
+<template>
+    <list :list.sync="list"></list>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import api from '@/api/api'
+  import moduleA from 'module-a' // aliasFields ignore module example
+  import testMixin from '../mixins/test'
+  import List from '../components/joke_list'
+
+  // console.log('moduleA ignored: ', moduleA) // => moduleA ignored: {}
+
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '励志英文',
+      "enablePullDownRefresh": true
+    }
+    components = {
+      list: List
+    }
+
+    mixins = [testMixin]
+
+    data = {
+      list:'',
+    }
+    onPullDownRefresh(){
+      wx.showNavigationBarLoading() //在标题栏中显示加载
+      this.English().then(() => {
+        wx.hideNavigationBarLoading() //完成停止加载
+        wx.stopPullDownRefresh();
+      })
+
+    }
+
+    methods = {
+      clecked(event){
+        let index = event.currentTarget.dataset.index
+        let arr = this.title
+        for(let i=0; i<arr.length; i++){
+          if(i === index){
+            arr[i].state = true;
+          }else{
+            arr[i].state = false;
+          }
+        }
+        this.title = arr
+      }
+    }
+    onLoad(){
+      this.English()
+    }
+    async English() {
+      let res = await api.getEnglish({
+        query: {
+          count: '10',
+        }
+      })
+      let arr =res.data.showapi_res_body.data
+      let num =Math.floor(Math.random()*100);
+      let rel = await api.getPhoto({
+        query:{
+          pn:num,
+          rn:10,
+          tag1: '壁纸',
+          tag2: '唯美'
+        }
+      })
+      for(let i=0; i<arr.length; i++){
+        arr[i].imgurl = rel.data.data[i].image_url
+      }
+      this.list = arr
+      this.$apply()
+    }
+
+
+  }
+</script>

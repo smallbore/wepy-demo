@@ -1,0 +1,75 @@
+<style lang="less">
+  @import "./styles/base";
+  @import "./styles/style";
+</style>
+
+<script>
+import wepy from 'wepy'
+import 'wepy-async-function'
+
+export default class extends wepy.app {
+  config = {
+    pages: [
+      'pages/index',
+      'pages/jokes',
+      'pages/story',
+      'pages/storydetails'
+    ],
+    window: {
+      backgroundTextStyle: 'light',
+      navigationBarBackgroundColor: '#000',
+      navigationBarTitleText: '笑话基',
+      navigationBarTextStyle: '#fff'
+    },
+    tabBar: {
+      "selectedColor": "#ED7317",
+      "list": [
+        {
+          "pagePath": "pages/index",
+          "text": "励志英文",
+          "iconPath": "/images/icon-class01.png",
+          "selectedIconPath": "/images/icon-class01ed.png"
+        },
+        {
+          "pagePath": "pages/jokes",
+          "text": "笑话基",
+          "iconPath": "/images/icon-pp05.png",
+          "selectedIconPath": "/images/icon-pp05ed.png"
+        },
+        {
+          "pagePath": "pages/story",
+          "text": "故事会",
+          "iconPath": "/images/icon-pp04.png",
+          "selectedIconPath": "/images/icon-pp04ed.png"
+        }
+      ]
+    }
+  }
+
+  globalData = {
+    userInfo: null
+  }
+
+  constructor () {
+    super()
+    this.use('requestfix')
+    this.use('promisify')
+  }
+
+  onLaunch() {
+  }
+
+  getUserInfo(cb) {
+    const that = this
+    if (this.globalData.userInfo) {
+      return this.globalData.userInfo
+    }
+    wepy.getUserInfo({
+      success (res) {
+        that.globalData.userInfo = res.userInfo
+        cb && cb(res.userInfo)
+      }
+    })
+  }
+}
+</script>

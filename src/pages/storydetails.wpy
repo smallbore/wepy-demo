@@ -1,0 +1,122 @@
+<style lang="less">
+  .back_top{
+    position:fixed;
+    right:10rpx;
+    bottom:100rpx;
+    width:60rpx;
+    height:60rpx;
+    border-radius:50%;
+    background:rgba(1,1,1,0.8);
+    color:#fff;
+    font-size:24rpx;
+    text-align:center;
+    line-height:60rpx;
+  }
+.story_wrap{
+  padding:30rpx;
+  background:#333;
+  color:#ddd;
+  font-size:32rpx;
+  line-height:1.6;
+}
+
+
+
+</style>
+<template>
+  <view class="story_wrap">
+    <view>
+      <rich-text nodes="{{list}}"></rich-text>
+    </view>
+
+    <view class="back_top" wx:if="{{floorstatus}}" @tap="goTop">top</view>
+  </view>
+
+</template>
+<script>
+  import wepy from 'wepy'
+  import api from '@/api/api'
+  import tip from '@/utils/tip'
+
+  export default class storydetails extends wepy.page {
+    config = {
+      navigationBarTitleText: '故事会',
+      onReachBottomDistance: 20
+    }
+    components = {
+    }
+
+    data = {
+      list:[],  //数据列表
+      allPages:'', // 最大页数
+      pagenum:1, // 获取第几页
+      floorstatus:false,  // 回到顶部
+      id:'',
+    }
+
+    onReachBottom(){
+      this.pagenum = this.pagenum + 1
+      if(this.pagenum > this.allPages){
+          tip.confirm('无更多内容').then( (e) => {
+            // console.log(e)
+          }).catch( (e) => {
+            // console.log(e)
+          })
+        }else{
+          this.getStorydetails(this.pagenum)
+      }
+    }
+
+    methods = {
+      //回到顶部
+      goTop(e) {  // 一键回到顶部
+        this.goTop()
+      },
+
+
+    }
+    onLoad(option){
+      console.log(option)
+      this.id = option.id
+      this.getStorydetails()
+    }
+    async getStorydetails(pagenum = 1){
+      let res = await api.getStorydetails({
+        query: {
+          id: this.id,
+          page: pagenum
+        }
+      })
+
+      let arr = res.data.showapi_res_body.text ? res.data.showapi_res_body.text : '内容丢失'
+      this.allPages = res.data.showapi_res_body.allPages
+      arr = arr.replace(/&nbsp;&nbsp;&nbsp;/g, "<br>")
+      arr = arr.replace(/<br>/, "")
+      if(pagenum !== 1){
+        this.list = this.list.concat(arr)
+      }else{
+        this.list = arr
+      }
+
+      this.$apply()
+    }
+    onPageScroll(e) {
+      // console.log(e)
+      if (e.scrollTop > 100) {
+        this.floorstatus = true
+      } else {
+        this.floorstatus = false
+      }
+      this.$apply()
+    }
+    goTop(e) {  // 一键回到顶部
+      if (wx.pageScrollTo) {
+        wx.pageScrollTo({
+          scrollTop: 0
+        })
+      } else {
+        tip.confirm('当前微信版本过低，无法使用该功能，请升级到最新微信版本后重试。')
+      }
+    }
+  }
+</script>
